@@ -56,7 +56,7 @@ class Recorder(object):
 
     def get_work_dir(self):
         now = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
-        hyper_param_str = '_lr_%1.0e_b_%d' % (self.cfg.optimizer.lr, self.cfg.batch_size)
+        hyper_param_str = '_lr_%1.4e_b_%d' % (self.cfg.optimizer.lr, self.cfg.batch_size)
         work_dir = os.path.join(self.cfg.work_dirs, now + hyper_param_str)
         if not os.path.exists(work_dir):
             os.makedirs(work_dir)

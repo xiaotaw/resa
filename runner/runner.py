@@ -53,22 +53,23 @@ class Runner(object):
             self.recorder.step += 1
             data = self.to_cuda(data)
             output = self.trainer.forward(self.net, data)
-            self.optimizer.zero_grad()
             loss = output['loss']
             loss.backward()
-            self.optimizer.step()
-            self.scheduler.step()
-            self.warmup_scheduler.dampen()
-            batch_time = time.time() - end
-            end = time.time()
-            self.recorder.update_loss_stats(output['loss_stats'])
-            self.recorder.batch_time.update(batch_time)
-            self.recorder.data_time.update(date_time)
+            if i % 4 == 3:
+                self.optimizer.step()
+                self.scheduler.step()
+                self.warmup_scheduler.dampen()
+                self.optimizer.zero_grad()
+                batch_time = time.time() - end
+                end = time.time()
+                self.recorder.update_loss_stats(output['loss_stats'])
+                self.recorder.batch_time.update(batch_time)
+                self.recorder.data_time.update(date_time)
 
-            if i % self.cfg.log_interval == 0 or i == max_iter - 1:
-                lr = self.optimizer.param_groups[0]['lr']
-                self.recorder.lr = lr
-                self.recorder.record('train')
+                if i % self.cfg.log_interval == 0 or i == max_iter - 1:
+                    lr = self.optimizer.param_groups[0]['lr']
+                    self.recorder.lr = lr
+                    self.recorder.record('train')
 
     def train(self):
         self.recorder.logger.info('start training...')
@@ -76,6 +77,7 @@ class Runner(object):
         train_loader = build_dataloader(self.cfg.dataset.train, self.cfg, is_train=True)
         val_loader = build_dataloader(self.cfg.dataset.val, self.cfg, is_train=False)
 
+        self.optimizer.zero_grad()
         for epoch in range(self.cfg.epochs):
             self.recorder.epoch = epoch
             self.train_epoch(epoch, train_loader)
